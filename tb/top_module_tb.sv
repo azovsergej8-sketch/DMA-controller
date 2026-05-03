@@ -79,32 +79,25 @@ class environment;
     task run_test();
         uart_transaction tr;
         bit [7:0] resp;
-
-        // Тест 1: Прямая запись (DIRECT_WRITE)
+        // Тест 1: Прямая запись
         tr = new();
         tr.opcode = 8'hA1; tr.addr = 8'h10; tr.data = 8'h55;
         tr.display("TEST_WRITE");
-        
         fork
             drv.drive(tr);
             mon.monitor_tx(resp);
         join
-        
         if (resp == 8'h01) $display("SUCCESS: Write ACK received[cite: 1]");
         else $error("ERROR: Expected 0x01, got 0x%h", resp);
-
         #1000000;
-
-        // Тест 2: Прямое чтение (DIRECT_READ)[cite: 1]
+        // Тест 2: Прямое чтение
         tr = new();
         tr.opcode = 8'hA2; tr.addr = 8'h10;
         tr.display("TEST_READ");
-
         fork
             drv.drive(tr);
             mon.monitor_tx(resp);
         join
-
         if (resp == 8'h55) $display("SUCCESS: Data matches written value!");
         else $error("ERROR: Data mismatch! Expected 0x55, got 0x%h", resp);
     endtask
@@ -113,30 +106,22 @@ module tb_top_module_advanced();
     reg clk;
     uart_if _if(clk);
     environment env;
-
-    // DUT[cite: 1]
     top_module #( .CLK_FREQ(50000000) ) dut (
         .clk(clk),
         .rst(_if.rst),
         .rx(_if.rx),
         .tx(_if.tx)
     );
-
-    // Привязка внутреннего состояния для удобства отладки
     assign _if.current_state = dut.state;
-
     initial clk = 0;
     always #10 clk = ~clk;
-
     initial begin
         _if.rst = 0;
         _if.rx = 1;
         #200 _if.rst = 1;
-
         env = new(_if);
         $display("--- Starting Advanced OOP Testbench ---");
         env.run_test();
-        
         $display("--- Testbench Finished ---");
         $finish;
     end
