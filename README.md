@@ -1,43 +1,46 @@
-# DMA-controller
-SystemVerilog implementation of a DMA Controller with UART-based command parsing and flexible memory access modes.
+# UART-Driven DMA Controller Core
 
-[![Language](https://img.shields.io/badge/Language-SystemVerilog-blue.svg)](https://en.wikipedia.org/wiki/SystemVerilog)
-[![Target](https://img.shields.io/badge/Target-RTL%20Verification%20%7C%20YADRO%20Internship-orange.svg)](https://yadro.com/)
+[![SystemVerilog](https://img.shields.io/badge/Language-SystemVerilog-blue.svg)](https://en.wikipedia.org/wiki/SystemVerilog)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Project Overview
-This repository contains the RTL implementation of a **Direct Memory Access (DMA) Controller** designed for efficient data transfers without CPU intervention. The project features a specialized **UART Command Interpreter** that mimics processor interactions, allowing for remote memory management and DMA configuration via a serial interface.
+This project implements a **Direct Memory Access (DMA) Controller** with a Command-Line Interface via **UART**. The system allows a host to either interact with memory directly (CPU-less access) or configure and trigger high-speed block transfers between internal memory regions.
 
-Developed as a technical showcase for RTL Design and Verification roles, with a focus on robust Finite State Machine (FSM) architectures and packet processing logic.
+The design is centered around a centralized Finite State Machine (FSM) that orchestrates interactions between the UART transceiver, a dedicated Register File for DMA descriptors, and a Dual-Port RAM.
 
-## Key Features
-* **Dual Operating Modes:**
-    * **Direct Access (CPU Emulation):** Direct read/write operations to memory via UART commands.
-    * **DMA Mode:** Autonomous block transfers between memory regions triggered by specific UART descriptors.
-* **Command Parsing Engine:** A centralized FSM decodes variable-length UART packets to extract opcodes, source/destination addresses, and block lengths.
-* **RISC-V Logic:** Implementation of an instruction decoder for a significant subset of **RISC-V pseudo-instructions** mapped to hardware operations.
-* **Modular Design:** Separate RTL modules for UART RX/TX, Command Parser, DMA Control Logic, and Memory Interface.
+## System Architecture
+* **Top Module:** Integrates UART, DMA Engine, Register File, and RAM.
+* **UART Interface:** Standard 8-N-1 serial communication (9600 baud default).
+* **DMA Engine:** Handles autonomous block data movement.
+* **Dual-Port RAM:** Port A for direct UART access, Port B for DMA operations.
 
-## Repository Structure
-* `src/` — Synthesizable SystemVerilog RTL (FSMs, Decoders, DMA Core).
-* `tb/` — Class-based Verification Environment (Drivers, Monitors, Scoreboards).
-* `docs/` — Architecture diagrams and command protocol specifications.
+## Command Protocol (Opcodes)
+The controller parses 8-bit opcodes to determine the operation mode:
 
-## Command Protocol
-The controller interprets packets following the format: `[OPCODE] [ADDR_H] [ADDR_L] [LEN/DATA...]`
+| Opcode | Name | Description | Response (ACK) |
+|:---:|:---|:---|:---|
+| **0xA1** | **DIRECT_WRITE** | Write 1 byte to specific address: `[0xA1][ADDR][DATA]` | `0x01` (Success) |
+| **0xA2** | **DIRECT_READ** | Read 1 byte from specific address: `[0xA2][ADDR]` | `[DATA_FROM_RAM]` |
+| **0xD1** | **DMA_LEN** | Set DMA transfer block length | - |
+| **0xD2** | **DMA_SRC** | Set DMA source starting address | - |
+| **0xD3** | **DMA_DST** | Set DMA destination starting address | - |
+| **0xD0** | **DMA_START** | Execute DMA block transfer | `0x02` (Done) |
 
-| Opcode | Name | Description |
-|:---:|:---|:---|
-| **0x10** | **MEM_WRITE** | Directly writes data to the specified memory address. |
-| **0x20** | **MEM_READ** | Reads data from memory and sends it back via UART. |
-| **0x30** | **DMA_START** | Triggers the DMA FSM to begin a block transfer. |
-| **0x40** | **SET_CONFIG** | Configures DMA source, destination, and transfer length. |
+### Error Codes
+* `0xE0`: Unknown Command.
+* `0xE1`: DMA Engine Error Signal detected.
+* `0xE2`: Command rejected (DMA is currently busy).
 
-## Verification
-The design is verified using an **Automated OOP-style Testbench**. The verification suite focuses on:
-* Packet integrity and handling of asynchronous UART streams.
-* Memory arbitration between Direct Access and DMA requests.
-* Validation of the RISC-V pseudo-instruction decoding logic.
+## Implementation Details
+* **Technology:** RTL SystemVerilog.
+* **FSM States:** `COMMAND` (IDLE/Parsing), `DATA` (Payload acquisition), `REALISE` (Memory execution), `DMA` (Wait for engine), `ASK` (UART Response).
+* **Clocking:** Configurable `CLK_FREQ` parameter with internal clock dividers for UART and 1MHz strobes.
+
+## How to Simulate
+1. Load all files in `src/` into your simulator (ModelSim/Vivado/Questasim).
+2. Run `tb_top_module.sv`.
+3. Observe UART TX responses to verify command execution.
 
 ---
 **Author:** Sergey Azov  
-*Candidate for Intern RTL Design/Verification role at YADRO*
+*Candidate for Intern RTL Design at YADRO*
