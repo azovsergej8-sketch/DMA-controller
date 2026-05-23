@@ -17,8 +17,7 @@ module top_module(
     .tick_x16  (tick_x16),
     .tick_1MHz (tick_1MHz)
   );
-    
-  );
+
   //Соединения UART
   reg tx_start;        
   reg[7:0] tx_data_UART;    
