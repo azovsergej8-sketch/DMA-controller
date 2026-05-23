@@ -44,7 +44,7 @@ module Register_File(
             8'h01: start_addr <= data[count];
             8'h02: dest_addr <= data[count];
             8'h03: length <= data[count];
-            8'h03: start <= 1;
+            8'h04: start <= 1;
           endcase
           if(count > 0) begin
             count <= count - 1;
