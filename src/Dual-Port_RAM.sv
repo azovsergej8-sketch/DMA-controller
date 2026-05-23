@@ -1,9 +1,9 @@
 module Dual-Port_RAM(
   input wire clk, //Тактовый сигнал
   input wire[7:0] addr_a, addr_b, //Указатели записи
-  input wire we_a, we_b, //Сигналы разрешения
+  input wire we_a, we_b, we_a_r, //Сигналы разрешения
   input wire[7:0] data_a_in, data_b_in, //Данные для записи
-  output reg[7:0] data_b_out //Данные для чтения
+	output reg[7:0] data_b_out, data_a_out //Данные для чтения
 );
   reg[7:0] mem[255:0]; //Блок памяти
   always@(posedge clk) begin
@@ -13,6 +13,9 @@ module Dual-Port_RAM(
     if(we_b) begin
         mem[addr_b] <= ata_b_in;
     end
+	if(we_a_r) begin
+		data_a_out <= mem[addr_a];
+	end 
     data_b_out <= mem[addr_b];
   end
 endmodule
