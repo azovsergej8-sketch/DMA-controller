@@ -29,7 +29,7 @@ module DMA_engine(
           	we_b <= 0;
         	if(start) begin
               	error <= 0;
-              	error_sgn <= 1;
+              	error_sgn <= 0;
           		//Сохраняем значения адресов и длин
           		save_length <= length;
           		save_start_addr <= start_addr; save_dest_adrr <= dest_adrr;
