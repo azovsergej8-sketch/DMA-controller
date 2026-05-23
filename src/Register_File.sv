@@ -1,6 +1,6 @@
 module Register_File(
   input wire clk, rst, ready,
-  input wire[7:0] data, //Вход от UART
+  input wire[7:0] data, //Вход 
   output reg[7:0] length, dest_addr, start_addr, //Длина и адреса
   output reg start //Сигнал старта
 );
