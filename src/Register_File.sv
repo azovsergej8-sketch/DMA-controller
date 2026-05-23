@@ -19,7 +19,7 @@ module Register_File(
       case(state)
         START: begin
           start <= 0;
-          if(rx_ready) begin
+          if(ready) begin
               if(need_data) state <= DATA;
               else state <= ADDR;
           end
